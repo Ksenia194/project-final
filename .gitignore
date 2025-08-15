@@ -6,4 +6,4 @@ logs
 attachments
 *.patch
 
-
+.env
