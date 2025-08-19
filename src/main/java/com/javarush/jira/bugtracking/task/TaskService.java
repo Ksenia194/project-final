@@ -21,6 +21,9 @@ import org.springframework.util.Assert;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static com.javarush.jira.bugtracking.ObjectType.TASK;
 import static com.javarush.jira.bugtracking.task.TaskUtil.fillExtraFields;
@@ -39,6 +42,8 @@ public class TaskService {
     private final SprintRepository sprintRepository;
     private final TaskExtMapper extMapper;
     private final UserBelongRepository userBelongRepository;
+    private final TaskTagRepository taskTagRepository;
+    private final TaskRepository taskRepository;
 
     @Transactional
     public void changeStatus(long taskId, String statusCode) {
@@ -139,5 +144,33 @@ public class TaskService {
         if (!userType.equals(possibleUserType)) {
             throw new DataConflictException(String.format(assign ? CANNOT_ASSIGN : CANNOT_UN_ASSIGN, userType, task.getStatusCode()));
         }
+    }
+
+    @Transactional
+    public void replaceTags(long taskId, Set<String> newTags) {
+        if (!taskRepository.existsById(taskId)) {
+            throw new NotFoundException("Task with id=" + taskId + " not found");
+        }
+
+        Set<String> normalized = newTags.stream()
+                .filter(Objects::nonNull)
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .map(String::toLowerCase)
+                .collect(Collectors.toSet());
+
+        taskTagRepository.deleteAllByTaskId(taskId);
+
+        for(String tag : normalized) {
+            taskTagRepository.insertTag(taskId, tag);
+        }
+    }
+
+    @Transactional(readOnly = true)
+    public Set<String> getTags(long taskId) {
+        if (!taskRepository.existsById(taskId)) {
+            throw new NotFoundException("Task with id=" + taskId + " not found");
+        }
+        return taskTagRepository.getTags(taskId);
     }
 }
