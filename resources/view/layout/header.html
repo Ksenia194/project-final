@@ -16,6 +16,12 @@
                             <a class="btn btn-yellow" href="/doc" target="_blank" type="button">Swagger API</a>
                         </li>
                     </ul>
+                    <div class="language-selector me-3">
+                        <a th:href="@{''(lang='en')}" class="btn btn-outline-light btn-sm me-1">EN</a>
+                        <a th:href="@{''(lang='uk')}" class="btn btn-outline-light btn-sm me-1">УК</a>
+                        <a th:href="@{''(lang='cs')}" class="btn btn-outline-light btn-sm">CS</a>
+                    </div>
+                    
                     <div th:if="${authUser} == null">
                         <a class="btn btn-orange" href="/view/login" type="button">Login/Register</a>
                     </div>
