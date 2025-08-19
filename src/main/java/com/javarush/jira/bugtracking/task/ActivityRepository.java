@@ -13,4 +13,7 @@ public interface ActivityRepository extends BaseRepository<Activity> {
 
     @Query("SELECT a FROM Activity a JOIN FETCH a.author WHERE a.taskId =:taskId AND a.comment IS NOT NULL ORDER BY a.updated DESC")
     List<Activity> findAllComments(long taskId);
+
+    @Query("SELECT a FROM Activity a WHERE a.taskId = :taskId AND a.statusCode IN ('in_progress', 'ready_for_review', 'done') ORDER BY a.updated ASC")
+    List<Activity> findStatusChanges(long taskId);
 }

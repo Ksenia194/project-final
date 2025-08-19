@@ -3,11 +3,14 @@ package com.javarush.jira.bugtracking.task;
 import com.javarush.jira.bugtracking.Handlers;
 import com.javarush.jira.bugtracking.task.to.ActivityTo;
 import com.javarush.jira.common.error.DataConflictException;
+import com.javarush.jira.common.error.IllegalRequestDataException;
 import com.javarush.jira.login.AuthUser;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import static com.javarush.jira.bugtracking.task.TaskUtil.getLatestValue;
@@ -72,5 +75,43 @@ public class ActivityService {
                 task.setTypeCode(latestType);
             }
         }
+    }
+
+    @Transactional(readOnly = true)
+    public Duration getTimeInProgress(long taskId) {
+        List<Activity> activities = handler.getRepository().findStatusChanges(taskId);
+
+        LocalDateTime inProgress = activities.stream()
+                .filter(a -> "in_progress".equals(a.getStatusCode()))
+                .map(Activity::getUpdated)
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException("Task never went to in_progress"));
+
+        LocalDateTime readyForReview = activities.stream()
+                .filter(a -> "ready_for_review".equals(a.getStatusCode()))
+                .map(Activity::getUpdated)
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException("Task never went to ready_for_review"));
+
+        return Duration.between(inProgress, readyForReview);
+    }
+
+    @Transactional(readOnly = true)
+    public Duration getTimeInTesting(long taskId) {
+        List<Activity> activities = handler.getRepository().findStatusChanges(taskId);
+
+        LocalDateTime readyForReview = activities.stream()
+                .filter(a -> "ready_for_review".equals(a.getStatusCode()))
+                .map(Activity::getUpdated)
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException("Task never went to ready_for_review"));
+
+        LocalDateTime done = activities.stream()
+                .filter(a -> "done".equals(a.getStatusCode()))
+                .map(Activity::getUpdated)
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException("Task never went to done"));
+
+        return Duration.between(readyForReview, done);
     }
 }

@@ -17,6 +17,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -153,6 +154,25 @@ public class TaskController {
         public TaskTreeNode(TaskTo taskTo) {
             this(taskTo, new LinkedList<>());
         }
+    }
+
+    private String formatDuration(Duration duration) {
+        long hours = duration.toHours();
+        long minutes = duration.toMinutesPart();
+        long seconds = duration.toSecondsPart();
+        return String.format("%dh %dm %ds", hours, minutes, seconds);
+    }
+
+    @GetMapping("/{id}/time-in-progress")
+    public String getTimeInProgress(@PathVariable long id) {
+        Duration duration = activityService.getTimeInProgress(id);
+        return formatDuration(duration);
+    }
+
+    @GetMapping("/{id}/time-in-testing")
+    public String getTimeInTesting(@PathVariable long id) {
+        Duration duration = activityService.getTimeInTesting(id);
+        return formatDuration(duration);
     }
 
     @GetMapping("/{id}/tags")

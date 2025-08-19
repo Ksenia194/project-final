@@ -332,3 +332,9 @@ create unique index UK_USER_BELONG on USER_BELONG (OBJECT_ID, OBJECT_TYPE, USER_
 
 --changeset kmpk:remove_vk
 DELETE FROM REFERENCE WHERE CODE = 'vk';
+
+-- changeset ksenya:add_test_activity_data
+insert into ACTIVITY (ID, AUTHOR_ID, TASK_ID, UPDATED, STATUS_CODE)
+values (7, 1, 1, '2025-08-10 10:00:00', 'in_progress'),
+       (8, 1, 1, '2025-08-12 14:00:00', 'ready_for_review'),
+       (9, 2, 1, '2025-08-13 18:30:00', 'done');
